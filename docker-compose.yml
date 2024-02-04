@@ -13,3 +13,20 @@ services:
       - '3306:3306'
     expose:
       - '3306'
+    volumes:
+      - cache:/data
+  cache:
+    image: redis:latest
+    restart: always
+    ports:
+      - '6379:6379'
+    expose:
+      - '6379'
+    command: redis-server --save 20 1 --loglevel warning --requirepass mycomplicatedpassword
+    volumes:
+      - cache:/data
+volumes:
+  cache:
+    driver: local
+  db:
+    driver: local
