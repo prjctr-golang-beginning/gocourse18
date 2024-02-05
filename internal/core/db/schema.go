@@ -1,7 +1,9 @@
 package db
 
 import (
+	"context"
 	"fmt"
+	"gocourse18/internal/core/db/nosql/cache"
 	"log"
 	"reflect"
 )
@@ -18,7 +20,6 @@ type TableSchema struct {
 	escapeColumns bool
 
 	_fields []string
-	_table  string
 }
 
 func NewTableSchema(entity any) *TableSchema {
@@ -75,9 +76,10 @@ func (s *TableSchema) cacheTableName() {
 		log.Fatalf("Table name for entity %s not defined")
 	}
 
-	s._table = val
+	_ = cache.Store(context.Background(), fmt.Sprintf(`%T_tablename`, s.entity), val, 0)
 }
 
 func (s *TableSchema) TableName() string {
-	return s._table
+	name, _ := cache.Load(context.Background(), fmt.Sprintf(`%T_tablename`, s.entity))
+	return name
 }
