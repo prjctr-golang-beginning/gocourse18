@@ -21,8 +21,6 @@ type Product struct {
 	UpdatedAt *time.Time `json:"updated_at"`
 	DeletedAt *time.Time `json:"deleted_at"`
 
-	InsertedAt time.Time `json:"inserted_at"`
-
 	db.Payload
 }
 

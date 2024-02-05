@@ -122,14 +122,17 @@ func dbCases(ctx context.Context, bs brand.Service, ps product.Service) error {
 
 	{
 		entityIn := model.NewBrand()
-		entityIn.ID = uuid.New()
-		entityIn.Name = `Adidas`
+		entityIn.Payload.Add(`id`, uuid.New())
+		entityIn.Payload.Add(`name`, `Adidas`)
 		pk, err := bs.Create(ctx, entityIn)
 		if err != nil {
 			return err
 		}
 
 		entityOut, err := bs.GetOne(ctx, pk)
+		if err != nil {
+			return err
+		}
 		if entityIn.ID == entityOut.ID {
 			log.Println(`All is OK with Brand`)
 		}
@@ -139,8 +142,8 @@ func dbCases(ctx context.Context, bs brand.Service, ps product.Service) error {
 
 	{
 		entityIn := model2.NewProduct()
-		entityIn.ID = uuid.New()
-		entityIn.BrandID = brandID
+		entityIn.Payload.Add(`id`, uuid.New())
+		entityIn.Payload.Add(`brand_id`, brandID)
 		pk, err := ps.Create(ctx, entityIn)
 		if err != nil {
 			return err

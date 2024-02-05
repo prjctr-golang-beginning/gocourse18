@@ -7,8 +7,6 @@ import (
 	"gocourse18/internal/core/db"
 	"gocourse18/internal/core/helpers"
 	"log"
-	"strconv"
-	"strings"
 )
 
 type Repository[E any] interface {
@@ -44,51 +42,41 @@ func (s *repository[E]) Schema() db.Schema {
 func (s *repository[E]) CreateOne(ctx context.Context, entity db.Entity) (db.PrimaryKey, error) {
 	columns, vals := helpers.SplitMap(entity.Body())
 
-	b := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
-		Insert(strconv.Quote(s.Schema().TableName())).
-		Columns(helpers.EscapeColumns(columns)...).
-		Values(vals...).
-		Suffix(`RETURNING`).
-		Suffix(strings.Join(entity.PrimaryKey().Fields(), `, `))
+	b := sq.StatementBuilder.
+		Insert(s.Schema().TableName()).
+		Columns(columns...).
+		Values(vals...)
 
 	query, args, err := b.ToSql()
 	if err != nil {
 		return nil, err
 	}
 
-	res := new(E)
-	rows, err := s.pool.QueryContext(ctx, query, args)
+	_, err = s.pool.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
-	e := new(E)
-	for rows.Next() {
-		err = rows.Scan(e)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
-	rows.Close()
 
-	return any(res).(db.PrimaryKeyable).PrimaryKey(), nil
+	return entity.PrimaryKey(), nil
 }
 
 func (s *repository[E]) FindOne(ctx context.Context, fields []string, pk db.PrimaryKey) (*E, error) {
 	b := sq.
-		Select(helpers.EscapeColumns(fields)...).
-		From(strconv.Quote(s.Schema().TableName())).
-		Where(pk.Fields(), pk.Values()).
+		Select(fields...).
+		From(s.Schema().TableName()).
+		Where(pk.OnlyEq()).
 		Limit(1)
 
-	query, args, bErr := b.ToSql()
-	if bErr != nil {
-		return nil, bErr
-	}
-
-	rows, err := s.pool.QueryContext(ctx, query, args)
+	query, args, err := b.ToSql()
 	if err != nil {
 		return nil, err
 	}
+
+	rows, err := s.pool.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+
 	e := new(E)
 	for rows.Next() {
 		err = rows.Scan(e)
@@ -96,6 +84,7 @@ func (s *repository[E]) FindOne(ctx context.Context, fields []string, pk db.Prim
 			log.Fatal(err)
 		}
 	}
+
 	rows.Close()
 
 	return e, nil

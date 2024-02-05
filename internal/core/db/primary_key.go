@@ -18,11 +18,11 @@ type PrimaryKeyable interface {
 }
 
 type PrimaryKey interface {
-	IsComplex() bool
 	Type() PKType
 	UUID() (uuid.UUID, bool)
 	Fields() []string
 	Values() []any
+	OnlyEq() sq.Eq
 }
 
 type PrimaryKeySrc interface {
@@ -38,20 +38,6 @@ func NewPrimaryKey[S PrimaryKeySrc](key S) PrimaryKey {
 			_fields: []string{KeyID},
 			_values: []any{&val},
 		}
-	case map[string]any:
-		pk := &primaryKey{
-			tp:      PkTypeComplex,
-			key:     val,
-			_fields: make([]string, 0, len(val)),
-			_values: make([]any, 0, len(val)),
-		}
-
-		for field, value := range val {
-			pk._fields = append(pk._fields, field)
-			pk._values = append(pk._values, &value)
-		}
-
-		return pk
 	}
 
 	return nil
@@ -74,10 +60,6 @@ func (s *primaryKey) Fields() []string {
 
 func (s *primaryKey) Values() []any {
 	return s._values
-}
-
-func (s *primaryKey) IsComplex() bool {
-	return s.Type() == PkTypeComplex
 }
 
 func (s *primaryKey) IsID() bool {
