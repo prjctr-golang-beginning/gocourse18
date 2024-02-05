@@ -2,8 +2,8 @@ package sql
 
 import (
 	"context"
-	"database/sql"
 	sq "github.com/Masterminds/squirrel"
+	"github.com/jmoiron/sqlx"
 	"gocourse18/internal/core/db"
 	"gocourse18/internal/core/helpers"
 	"log"
@@ -16,7 +16,7 @@ type Repository[E any] interface {
 }
 
 type Conn interface {
-	QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error)
+	sqlx.QueryerContext
 }
 
 func NewRepository[E any](pool Conn, schema db.Schema) Repository[E] {
@@ -72,19 +72,18 @@ func (s *repository[E]) FindOne(ctx context.Context, fields []string, pk db.Prim
 		return nil, err
 	}
 
-	rows, err := s.pool.QueryContext(ctx, query, args...)
+	rows, err := s.pool.QueryxContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
 
 	e := new(E)
 	for rows.Next() {
-		err = rows.Scan(e)
+		err = rows.StructScan(e)
 		if err != nil {
 			log.Fatal(err)
 		}
 	}
-
 	rows.Close()
 
 	return e, nil

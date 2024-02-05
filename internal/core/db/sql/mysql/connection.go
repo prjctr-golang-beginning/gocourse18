@@ -2,8 +2,8 @@ package mysql
 
 import (
 	"context"
-	"database/sql"
 	"errors"
+	"github.com/jmoiron/sqlx"
 	"math"
 	"sync"
 	"time"
@@ -36,7 +36,7 @@ func NewConnectionPool(cfg DSNer) *connection {
 
 type connection struct {
 	cfg        DSNer
-	readPool   *sql.DB
+	readPool   *sqlx.DB
 	readPoolMu sync.Once
 }
 
@@ -53,7 +53,7 @@ func (c *connection) Ping() error {
 }
 
 // ReadPool gets read connection pool
-func (c *connection) ReadPool() *sql.DB {
+func (c *connection) ReadPool() *sqlx.DB {
 	c.readPoolMu.Do(func() {
 		conn, err := connect(c.cfg.FormatDSN())
 		if err != nil {
@@ -67,11 +67,11 @@ func (c *connection) ReadPool() *sql.DB {
 }
 
 // WritePool gets write connection pool
-func (c *connection) WritePool() *sql.DB {
+func (c *connection) WritePool() *sqlx.DB {
 	return c.ReadPool()
 }
 
-func connect(dsn string) (*sql.DB, error) {
+func connect(dsn string) (*sqlx.DB, error) {
 	var getReadConnAttempts float64
 
 start:
@@ -79,7 +79,7 @@ start:
 		return nil, errTooManyAttempts
 	}
 
-	conn, err := sql.Open("mysql", dsn)
+	conn, err := sqlx.Open("mysql", dsn)
 	if err != nil {
 		time.Sleep(time.Duration(int(math.Pow(2, getReadConnAttempts))) * time.Second)
 		getReadConnAttempts++

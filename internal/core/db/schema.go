@@ -54,7 +54,7 @@ func (s *TableSchema) Fields() []string {
 		field := t.Field(i)
 
 		// Отримуємо значення JSON тега
-		tag := field.Tag.Get("json")
+		tag := field.Tag.Get("db")
 		if tag != "" && tag != "-" {
 			tags = append(tags, tag)
 		}

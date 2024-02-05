@@ -7,19 +7,18 @@ import (
 )
 
 func NewProduct() *Product {
-	res := &Product{}
-	res.Payload = db.NewPayload(res)
+	res := &Product{Payload: db.NewPayload()}
 
 	return res
 }
 
 type Product struct {
-	ID        uuid.UUID  `json:"id" table_name:"products"`
-	BrandID   uuid.UUID  `json:"brand_id"`
-	Status    Status     `json:"status"`
-	CreatedAt time.Time  `json:"created_at"`
-	UpdatedAt *time.Time `json:"updated_at"`
-	DeletedAt *time.Time `json:"deleted_at"`
+	ID        uuid.UUID  `db:"id" table_name:"products"`
+	BrandID   uuid.UUID  `db:"brand_id"`
+	Status    *Status    `db:"status"`
+	CreatedAt *time.Time `db:"created_at"`
+	UpdatedAt *time.Time `db:"updated_at"`
+	DeletedAt *time.Time `db:"deleted_at"`
 
 	db.Payload
 }

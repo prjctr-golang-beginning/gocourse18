@@ -10,7 +10,8 @@ type PKType string
 const (
 	PkTypeID      PKType = "ID"
 	PkTypeComplex PKType = "Complex"
-	KeyID         string = "id"
+
+	KeyID string = "id"
 )
 
 type PrimaryKeyable interface {
@@ -18,10 +19,8 @@ type PrimaryKeyable interface {
 }
 
 type PrimaryKey interface {
-	Type() PKType
 	UUID() (uuid.UUID, bool)
 	Fields() []string
-	Values() []any
 	OnlyEq() sq.Eq
 }
 
@@ -36,7 +35,6 @@ func NewPrimaryKey[S PrimaryKeySrc](key S) PrimaryKey {
 			tp:      PkTypeID,
 			key:     map[string]any{KeyID: val},
 			_fields: []string{KeyID},
-			_values: []any{&val},
 		}
 	}
 
@@ -50,20 +48,8 @@ type primaryKey struct {
 	_values []any
 }
 
-func (s *primaryKey) Type() PKType {
-	return s.tp
-}
-
 func (s *primaryKey) Fields() []string {
 	return s._fields
-}
-
-func (s *primaryKey) Values() []any {
-	return s._values
-}
-
-func (s *primaryKey) IsID() bool {
-	return s.Type() == PkTypeID
 }
 
 func (s *primaryKey) UUID() (uuid.UUID, bool) {

@@ -121,8 +121,10 @@ func dbCases(ctx context.Context, bs brand.Service, ps product.Service) error {
 	var brandID uuid.UUID
 
 	{
+		newId := uuid.New()
 		entityIn := model.NewBrand()
-		entityIn.Payload.Add(`id`, uuid.New())
+		entityIn.ID = newId
+		entityIn.Payload.Add(`id`, newId)
 		entityIn.Payload.Add(`name`, `Adidas`)
 		pk, err := bs.Create(ctx, entityIn)
 		if err != nil {
@@ -141,8 +143,10 @@ func dbCases(ctx context.Context, bs brand.Service, ps product.Service) error {
 	}
 
 	{
+		newId := uuid.New()
 		entityIn := model2.NewProduct()
-		entityIn.Payload.Add(`id`, uuid.New())
+		entityIn.ID = newId
+		entityIn.Payload.Add(`id`, newId)
 		entityIn.Payload.Add(`brand_id`, brandID)
 		pk, err := ps.Create(ctx, entityIn)
 		if err != nil {
